@@ -6,8 +6,8 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 BASE="https://downloads.claude.ai/claude-desktop/apt/stable"
-MANIFEST="com.anthropic.ClaudeDesktop.yaml"
-METAINFO="com.anthropic.ClaudeDesktop.metainfo.xml"
+MANIFEST="me.jezh.ClaudeDesktop.yaml"
+METAINFO="me.jezh.ClaudeDesktop.metainfo.xml"
 
 # Latest version + sha256 for one architecture, from the Packages index.
 latest() { # $1 = amd64|arm64

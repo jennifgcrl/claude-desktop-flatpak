@@ -1,0 +1,40 @@
+name: Update Claude version
+
+# Once a day, check Anthropic's apt repo for a newer claude-desktop release and,
+# if there is one, open a PR bumping the pinned version + sha256 sums. The Build
+# workflow then verifies it (see the note in build.yml about auto-PRs and PAT).
+on:
+  schedule:
+    - cron: '0 6 * * *'   # daily, 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Rewrites version + per-arch sha256 in the manifest and the metainfo
+      # <release>. A no-op if already on the latest version.
+      - name: Bump to latest upstream release
+        run: ./update-version.sh
+
+      - name: Open PR if anything changed
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
+          branch: update/claude-version
+          delete-branch: true
+          commit-message: Bump Claude Desktop to the latest upstream release
+          title: Bump Claude Desktop to the latest upstream release
+          body: |
+            Automated daily bump by `update-version.sh`.
+
+            Confirm the **Build** workflow is green before merging. If Build did
+            not run on this PR, dispatch it manually (Actions → Build → Run
+            workflow → this branch), or set a `PAT` secret so future auto-PRs
+            trigger it — see `.github/workflows/build.yml`.

@@ -1,0 +1,40 @@
+name: Build
+
+# Verifies the Flatpak builds. Runs on pushes/PRs to main and on demand.
+# Note: PRs opened by the daily update workflow use the default GITHUB_TOKEN,
+# which by design does NOT trigger this workflow. The post-merge push to main
+# does build them; to also build the auto-PRs before merge, add a repo secret
+# named PAT (a fine-grained token with contents+PR write) and the update
+# workflow will use it.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# Cancel superseded runs on the same ref.
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  flatpak:
+    name: Build x86_64
+    runs-on: ubuntu-latest
+    container:
+      # Ships flatpak-builder + the org.freedesktop 24.08 runtime/SDK.
+      image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-24.08
+      options: --privileged
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build
+        uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        with:
+          manifest-path: me.jezh.ClaudeDesktop.yaml
+          bundle: me.jezh.ClaudeDesktop.flatpak
+          arch: x86_64
+          # Cache the qemu/libslirp/ovmf builds so only changed modules recompile.
+          cache: true
+          cache-key: flatpak-builder-${{ hashFiles('me.jezh.ClaudeDesktop.yaml') }}

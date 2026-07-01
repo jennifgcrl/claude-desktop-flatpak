@@ -7,8 +7,8 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-MANIFEST="com.anthropic.ClaudeDesktop.yaml"
-APP_ID="com.anthropic.ClaudeDesktop"
+MANIFEST="me.jezh.ClaudeDesktop.yaml"
+APP_ID="me.jezh.ClaudeDesktop"
 
 # The runtime, SDK and Electron BaseApp come from Flathub. --install-deps-from
 # reads their exact versions from the manifest, so they can never drift from it.

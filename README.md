@@ -14,7 +14,7 @@ Supports `x86_64` and `aarch64` (the two architectures Anthropic publishes).
 
 ```sh
 ./build.sh
-flatpak run com.anthropic.ClaudeDesktop
+flatpak run me.jezh.ClaudeDesktop
 ```
 
 `build.sh` adds the Flathub remote (user), then builds and installs with
@@ -26,7 +26,7 @@ To build manually:
 
 ```sh
 flatpak-builder --user --install-deps-from=flathub --install --force-clean \
-  build-dir com.anthropic.ClaudeDesktop.yaml
+  build-dir me.jezh.ClaudeDesktop.yaml
 ```
 
 ### NixOS
@@ -56,7 +56,7 @@ git diff              # review
 ```
 
 The pinned version and per-arch `sha256` sums live in
-`com.anthropic.ClaudeDesktop.yaml`.
+`me.jezh.ClaudeDesktop.yaml`.
 
 ## What works / what doesn't
 
@@ -102,7 +102,7 @@ users.users.<you>.extraGroups = [ "kvm" ];
 Verify from inside the sandbox after install:
 
 ```sh
-flatpak run --command=sh com.anthropic.ClaudeDesktop -c \
+flatpak run --command=sh me.jezh.ClaudeDesktop -c \
   'ls -l /dev/kvm /dev/vhost-vsock; qemu-system-x86_64 --version'
 ```
 

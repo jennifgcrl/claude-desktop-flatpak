@@ -10,7 +10,7 @@
 # Upstream ships only a .deb (apt repo at downloads.claude.ai). To bump the
 # Claude version, change the two per-arch sha256 sums + urls, or run
 # ./update-version.sh.
-app-id: com.anthropic.ClaudeDesktop
+app-id: me.jezh.ClaudeDesktop
 runtime: org.freedesktop.Platform
 runtime-version: '24.08'
 sdk: org.freedesktop.Sdk
@@ -188,4 +188,4 @@ modules:
       - type: file
         path: claude-desktop.sh
       - type: file
-        path: com.anthropic.ClaudeDesktop.metainfo.xml
+        path: me.jezh.ClaudeDesktop.metainfo.xml
