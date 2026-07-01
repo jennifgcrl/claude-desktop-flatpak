@@ -1,0 +1,96 @@
+# Flatpak manifest for Claude Desktop (Linux beta), repackaged from Anthropic's
+# official .deb. This does NOT rebuild Claude from source — it extracts the
+# prebuilt Electron app from the signed .deb and runs it under zypak inside the
+# Flatpak sandbox.
+#
+# Upstream ships only a .deb (apt repo at downloads.claude.ai). To bump the
+# version, change `release` below and the two per-arch sha256 sums, or run
+# ./update-version.sh.
+app-id: com.anthropic.ClaudeDesktop
+runtime: org.freedesktop.Platform
+runtime-version: '24.08'
+sdk: org.freedesktop.Sdk
+# The Electron BaseApp provides zypak (zypak-wrapper) plus the shared libs a
+# prebuilt Electron/Chromium binary expects. It is what lets us run Chromium's
+# sandbox without the SUID chrome-sandbox helper (forbidden in Flatpak).
+base: org.electronjs.Electron2.BaseApp
+base-version: '24.08'
+command: claude-desktop
+
+finish-args:
+  # Chromium/Electron IPC and network.
+  - --share=ipc
+  - --share=network
+  # Display: prefer Wayland when present, fall back to X11 (XWayland).
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --device=dri
+  # Audio (notification sounds, voice playback).
+  - --socket=pulseaudio
+  # Cowork runs a qemu microVM and needs KVM. qemu itself is NOT bundled (see
+  # README), so Cowork will not work out of the box — this only removes the
+  # sandbox as a blocker for anyone who later bundles qemu.
+  - --device=kvm
+  # Claude Code / Cowork operate on the user's projects; the app also reads the
+  # shared ~/.claude config used by the CLI. Narrow this to specific project
+  # dirs if you prefer tighter isolation.
+  - --filesystem=home
+  # Desktop notifications (libnotify).
+  - --talk-name=org.freedesktop.Notifications
+  # Credential storage (libsecret -> gnome-keyring / kwallet via Secret Service).
+  - --talk-name=org.freedesktop.secrets
+  # Tray icon (StatusNotifierItem / AppIndicator).
+  - --talk-name=org.kde.StatusNotifierWatcher
+  - --talk-name=com.canonical.AppMenu.Registrar
+  # Let Electron pick the right Ozone backend automatically.
+  - --env=ELECTRON_OZONE_PLATFORM_HINT=auto
+
+modules:
+  - name: claude-desktop
+    buildsystem: simple
+    build-commands:
+      # A .deb is an `ar` archive; binutils (ar) and tar/xz ship in the SDK.
+      - ar x claude-desktop.deb
+      - mkdir -p data
+      - tar -xf data.tar.xz -C data
+
+      # The prebuilt Electron app tree.
+      - cp -a data/usr/lib/claude-desktop /app/lib/claude-desktop
+      # chrome-sandbox is useless (and blocked) inside Flatpak; zypak replaces it.
+      - rm -f /app/lib/claude-desktop/chrome-sandbox
+
+      # Launcher: run the bundled Electron binary through zypak.
+      - install -Dm755 claude-desktop.sh /app/bin/claude-desktop
+
+      # Desktop entry: reuse upstream's (keeps the claude:// handler + actions),
+      # renamed to the app-id and repointed at our exported icon name.
+      - install -Dm644 data/usr/share/applications/claude-desktop.desktop
+          /app/share/applications/${FLATPAK_ID}.desktop
+      - sed -i "s/^Icon=.*/Icon=${FLATPAK_ID}/" /app/share/applications/${FLATPAK_ID}.desktop
+
+      # Icons, renamed to the app-id so Flatpak exports them.
+      - |
+        for s in 16 32 48 128 256; do
+          install -Dm644 "data/usr/share/icons/hicolor/${s}x${s}/apps/claude-desktop.png" \
+            "/app/share/icons/hicolor/${s}x${s}/apps/${FLATPAK_ID}.png"
+        done
+
+      # AppStream metadata (software-center listing).
+      - install -Dm644 ${FLATPAK_ID}.metainfo.xml
+          /app/share/metainfo/${FLATPAK_ID}.metainfo.xml
+
+    sources:
+      - type: file
+        only-arches: [x86_64]
+        url: https://downloads.claude.ai/claude-desktop/apt/stable/pool/main/c/claude-desktop/claude-desktop_1.17377.1_amd64.deb
+        sha256: f4bd78545200877b591179838de7ad7a577df6ed2e845969dd25690efc5c85c7
+        dest-filename: claude-desktop.deb
+      - type: file
+        only-arches: [aarch64]
+        url: https://downloads.claude.ai/claude-desktop/apt/stable/pool/main/c/claude-desktop/claude-desktop_1.17377.1_arm64.deb
+        sha256: 658acbff14bd9c35d795ede46f097fca79d433ac4af792cdd6486acd3adc6f2e
+        dest-filename: claude-desktop.deb
+      - type: file
+        path: claude-desktop.sh
+      - type: file
+        path: com.anthropic.ClaudeDesktop.metainfo.xml

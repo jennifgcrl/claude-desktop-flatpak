@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.anthropic.ClaudeDesktop</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <!-- The app itself is proprietary; this manifest/packaging is not. -->
+  <project_license>LicenseRef-proprietary</project_license>
+  <name>Claude</name>
+  <summary>Desktop application for Claude.ai</summary>
+
+  <description>
+    <p>
+      Claude Desktop packaged as a Flatpak from Anthropic's official Linux
+      .deb. It provides the Chat, Cowork, and Claude Code experience in a
+      single desktop app: parallel sessions, visual diff review, an integrated
+      terminal and editor, and live app preview.
+    </p>
+    <p>
+      This is an unofficial repackage. The application is downloaded, unmodified,
+      from Anthropic's signed .deb and run under zypak inside the Flatpak sandbox.
+    </p>
+  </description>
+
+  <launchable type="desktop-id">com.anthropic.ClaudeDesktop.desktop</launchable>
+
+  <url type="homepage">https://claude.ai</url>
+  <url type="help">https://code.claude.com/docs/en/desktop-linux</url>
+
+  <developer id="com.anthropic">
+    <name>Anthropic PBC</name>
+  </developer>
+
+  <categories>
+    <category>Utility</category>
+    <category>Development</category>
+  </categories>
+
+  <content_rating type="oars-1.1"/>
+
+  <releases>
+    <release version="1.17377.1" date="2026-06-30"/>
+  </releases>
+</component>

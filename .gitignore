@@ -1,0 +1,9 @@
+# flatpak-builder output
+/.flatpak-builder/
+/build-dir/
+/repo/
+*.flatpak
+
+# extracted deb (only appears if you inspect locally)
+/data/
+*.deb
