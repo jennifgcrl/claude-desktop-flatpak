@@ -43,6 +43,8 @@ awk -v amd="$AMD_SHA" -v arm="$ARM_SHA" '
   { print }
 ' "$MANIFEST" > "$MANIFEST.tmp" && mv "$MANIFEST.tmp" "$MANIFEST"
 
-sed -i -E "s#<release version=\"[0-9.]+\"#<release version=\"${VER}\"#" "$METAINFO"
+sed -i -E \
+  "s#<release version=\"[0-9.]+\" date=\"[0-9-]+\"#<release version=\"${VER}\" date=\"$(date +%F)\"#" \
+  "$METAINFO"
 
 echo "Updated $MANIFEST and $METAINFO to $VER. Review 'git diff', then ./build.sh."

@@ -72,10 +72,11 @@ modules:
   - name: qemu
     only-arches: [x86_64]
     buildsystem: simple
-    # qemu's build creates a Python venv and pip-installs a couple of helpers.
-    # There's no network in the build sandbox, so point pip at the offline
-    # pycotap wheel below (qemu.qmp falls back to the copy bundled in the
-    # tarball). Without this, the `functests.group` target fails.
+    # qemu's build ensures a set of Python packages in a build venv. Most are
+    # vendored in the tarball (meson, pycotap, qemu.qmp); the "functests" group's
+    # sole member, pygdbmi, is not — qemu would fetch it from PyPI. There's no
+    # network in the build sandbox, so we ship that wheel (below) and point pip
+    # at it offline. Without this the `functests.group` build target fails.
     build-options:
       env:
         PIP_NO_INDEX: '1'
@@ -99,13 +100,7 @@ modules:
       - type: archive
         url: https://download.qemu.org/qemu-11.0.2.tar.xz
         sha256: 3745f6ea88e2e87fe0dc838b2b1d4e0a770bf48e01a1d5a186842a1fff76ccf5
-      # Offline wheels for qemu's build venv (see build-options.env above). The
-      # 'all' target ensures qemu's Python "functests" group, whose sole member
-      # (pygdbmi) is not vendored in the tarball; pycotap covers the meson group
-      # (also vendored, kept here as a belt-and-suspenders).
-      - type: file
-        url: https://files.pythonhosted.org/packages/36/f4/77b5a41d53ae3c530b204ed9a35137171b20f8ee0f337e2ec4993d6026a5/pycotap-1.3.1-py3-none-any.whl
-        sha256: 1c3a25b3ff89e48f4e00f1f71dbbc1642b4f65c65d416524d07e73492fff25ea
+      # Offline wheel for qemu's build venv (see build-options.env above).
       - type: file
         url: https://files.pythonhosted.org/packages/c8/4b/71df806f4d260ddf01f9e431f5a6538a4155db3ec84a131d7e087178c591/pygdbmi-0.11.0.0-py3-none-any.whl
         sha256: f7cac28e1d558927444c880ed1e65da1a5d8686121a3aac16f42fb84d3ceb60d

@@ -3,8 +3,10 @@
 An **unofficial** Flatpak repackage of [Claude Desktop for Linux](https://code.claude.com/docs/en/desktop-linux)
 (currently in beta). Anthropic ships the app only as a `.deb`; this manifest
 extracts that prebuilt, signed Electron app and runs it inside a Flatpak
-sandbox via [zypak](https://github.com/refi64/zypak). The app binary is **not**
-modified or rebuilt.
+sandbox via [zypak](https://github.com/refi64/zypak). Claude's Electron binary
+runs as-shipped — nothing is recompiled from source. (The only edit to the app
+payload is a same-length path string inside `app.asar` so Cowork can find its
+bundled firmware; see [How it works](#how-it-works).)
 
 Supports `x86_64` and `aarch64` (the two architectures Anthropic publishes).
 
@@ -15,14 +17,16 @@ Supports `x86_64` and `aarch64` (the two architectures Anthropic publishes).
 flatpak run com.anthropic.ClaudeDesktop
 ```
 
-`build.sh` adds the Flathub remote (user), installs the runtime + Electron
-BaseApp, and builds with `flatpak-builder`. If `flatpak-builder` isn't on your
-`PATH` it falls back to `nix run nixpkgs#flatpak-builder`.
+`build.sh` adds the Flathub remote (user), then builds and installs with
+`flatpak-builder` (`--install-deps-from=flathub` pulls the runtime, SDK, and
+Electron BaseApp declared in the manifest). If `flatpak-builder` isn't on your
+`PATH` it falls back to `nix shell nixpkgs#flatpak-builder nixpkgs#appstream`.
 
 To build manually:
 
 ```sh
-flatpak-builder --user --install --force-clean build-dir com.anthropic.ClaudeDesktop.yaml
+flatpak-builder --user --install-deps-from=flathub --install --force-clean \
+  build-dir com.anthropic.ClaudeDesktop.yaml
 ```
 
 ### NixOS

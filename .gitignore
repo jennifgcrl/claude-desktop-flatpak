@@ -7,3 +7,6 @@
 # extracted deb (only appears if you inspect locally)
 /data/
 *.deb
+
+# editor / assistant local state
+/.claude/
