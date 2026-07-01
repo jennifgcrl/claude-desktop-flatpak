@@ -25,8 +25,9 @@ flatpak --user install -y flathub \
 if command -v flatpak-builder >/dev/null 2>&1; then
   FB=(flatpak-builder)
 elif command -v nix >/dev/null 2>&1; then
-  echo "flatpak-builder not found; using nix run nixpkgs#flatpak-builder"
-  FB=(nix run nixpkgs#flatpak-builder --)
+  # flatpak-builder shells out to `appstreamcli` for metainfo; pull it in too.
+  echo "flatpak-builder not found; using nix (flatpak-builder + appstream)"
+  FB=(nix shell nixpkgs#flatpak-builder nixpkgs#appstream --command flatpak-builder)
 else
   echo "error: need flatpak-builder (install it, or install Nix)." >&2
   exit 1
