@@ -137,11 +137,14 @@ tighter isolation. `--device=all` is required for Cowork (see above).
    `zypak-wrapper`.
 5. Upstream's `.desktop` (kept for the `claude://` handler + actions) and icons
    are renamed to the app-id and exported.
-6. For Cowork (x86_64): `libslirp` and `qemu` are built from source, OVMF
-   firmware is extracted from Debian's `ovmf-generic` deb into `/app/share/OVMF`,
-   and `app.asar` is byte-patched so the app's hardcoded `/usr/share/OVMF`
-   firmware lookup resolves to `/app/share/OVMF` (equal-length paths → the
-   archive's offsets stay valid, no repack).
+6. For Cowork (x86_64): `libslirp` and `qemu` are built from source and OVMF
+   firmware is extracted from Debian's `ovmf-generic` deb into `/app/share/OVMF`.
+   `app.asar` is then byte-patched to redirect the app's hardcoded `/usr` lookups
+   into `/app`: the firmware search path (`/usr/share/OVMF` → `/app/share/OVMF`)
+   and the system virtiofsd path (`/usr/libexec/virtiofsd` → `/app/libexec/virtiofsd`,
+   symlinked to the copy bundled in the `.deb`; the app otherwise only uses its
+   bundled virtiofsd on Ubuntu 22.04). Every replacement is the same byte length
+   (`/usr/` == `/app/`), so the archive's offset table stays valid — no repack.
 
 ## Disclaimer
 

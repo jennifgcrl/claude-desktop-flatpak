@@ -137,22 +137,32 @@ modules:
       # chrome-sandbox is useless (and blocked) inside Flatpak; zypak replaces it.
       - rm -f /app/lib/claude-desktop/chrome-sandbox
 
-      # Cowork firmware redirect: the app hardcodes /usr/share/OVMF (read-only
-      # runtime) as the firmware search path. Rewrite it to /app/share/OVMF in
-      # place — "/usr/" and "/app/" are the same length, so the asar's byte
-      # offsets stay valid and no repack is needed. (Same for arm's AAVMF.)
+      # Cowork path redirects. The app hardcodes absolute /usr paths for the
+      # UEFI firmware and virtiofsd — both under the read-only runtime, so they
+      # can't exist there. Rewrite each to its /app equivalent in place: every
+      # replacement is the same byte length ("/usr/" == "/app/"), so the asar's
+      # offset table stays valid and no repack is needed.
+      #   - firmware: the app searches /usr/share/OVMF (x86) or /usr/share/AAVMF
+      #     (arm); we ship it under /app/share/... (see the ovmf module).
+      #   - virtiofsd: the app uses its bundled copy only on Ubuntu 22.04 and
+      #     otherwise looks for a system /usr/libexec/virtiofsd. Point that at
+      #     /app/libexec/virtiofsd, symlinked to the bundled binary below, so it
+      #     resolves on any host (including this runtime).
       - |
         python3 - <<'PY'
         from pathlib import Path
         p = Path("/app/lib/claude-desktop/resources/app.asar")
         d = p.read_bytes()
         before = len(d)
-        d = d.replace(b"/usr/share/OVMF/",  b"/app/share/OVMF/")
-        d = d.replace(b"/usr/share/AAVMF/", b"/app/share/AAVMF/")
+        d = d.replace(b"/usr/share/OVMF/",        b"/app/share/OVMF/")
+        d = d.replace(b"/usr/share/AAVMF/",       b"/app/share/AAVMF/")
+        d = d.replace(b"/usr/libexec/virtiofsd",  b"/app/libexec/virtiofsd")
         assert len(d) == before, "asar length changed — offsets would break"
         p.write_bytes(d)
-        print("asar firmware paths redirected to /app")
+        print("asar firmware + virtiofsd paths redirected to /app")
         PY
+      - install -d /app/libexec
+      - ln -s ../lib/claude-desktop/resources/virtiofsd /app/libexec/virtiofsd
 
       # Launcher: run the bundled Electron binary through zypak.
       - install -Dm755 claude-desktop.sh /app/bin/claude-desktop
