@@ -59,11 +59,13 @@ The pinned version and per-arch `sha256` sums live in
 - **Chat, Claude Code** (integrated terminal, editor, diff review): work.
 - **Credentials, notifications, tray icon**: wired up via the Secret Service,
   notification, and StatusNotifier D-Bus names in `finish-args`.
-- **Cowork**: **not functional out of the box.** Cowork runs a `qemu` microVM
-  (the app bundles `smol-bin.*.img`, `virtiofsd`, and `cowork-linux-helper`,
-  but *not* `qemu`, which the `.deb` only *Recommends* from the host). The
-  sandbox is already allowed `--device=kvm`; making Cowork work would
-  additionally require bundling `qemu-system` + `ovmf` as extra modules.
+- **Cowork** (x86_64): **works.** The manifest builds QEMU 11.0.2 (KVM + slirp +
+  virtio/vhost-user/vhost-vsock) and bundles OVMF UEFI firmware, then redirects
+  the app's hardcoded `/usr/share/OVMF` firmware path to `/app/share/OVMF` via a
+  same-length in-place patch of `app.asar`. The VM image, `virtiofsd`, and the
+  Cowork helper come bundled in the upstream `.deb`. Requires the host
+  prerequisites below. On **aarch64**, QEMU is not bundled — you get Chat +
+  Claude Code but not Cowork (see "Enabling Cowork on aarch64").
 - **Sandbox caveat for Claude Code:** the integrated terminal runs *inside* the
   Flatpak sandbox, so it sees the runtime's tools — not compilers/interpreters
   installed on your host (especially relevant on NixOS). `--filesystem=home`
@@ -71,11 +73,55 @@ The pinned version and per-arch `sha256` sums live in
   host toolchains aren't on `PATH` inside the sandbox. If you rely on
   host-installed dev tools, the native `.deb` or the CLI may suit you better.
 
+## Cowork host prerequisites (x86_64)
+
+Cowork boots a KVM microVM, so the host must expose virtualization:
+
+- **`/dev/kvm`** must exist and be accessible to your user (usually membership
+  in the `kvm` group).
+- **`vhost_vsock`** kernel module must be loaded (provides `/dev/vhost-vsock`,
+  used for host↔guest communication).
+
+Flatpak has no granular option for `/dev/vhost-vsock`, so the manifest uses
+`--device=all` to pass host devices through. If you don't use Cowork, you can
+tighten this to `--device=dri --device=kvm` in the manifest and rebuild.
+
+On NixOS:
+
+```nix
+# configuration.nix
+virtualisation.libvirtd.enable = true;      # pulls in KVM + sets up /dev/kvm perms
+boot.kernelModules = [ "kvm-amd" "vhost_vsock" ];   # use kvm-intel on Intel CPUs
+users.users.<you>.extraGroups = [ "kvm" ];
+```
+
+Verify from inside the sandbox after install:
+
+```sh
+flatpak run --command=sh com.anthropic.ClaudeDesktop -c \
+  'ls -l /dev/kvm /dev/vhost-vsock; qemu-system-x86_64 --version'
+```
+
+### Enabling Cowork on aarch64
+
+The `libslirp`, `qemu`, and `ovmf` modules are marked `only-arches: [x86_64]`.
+To support Cowork on aarch64 you'd change those to `aarch64`, build QEMU with
+`--target-list=aarch64-softmmu` (which additionally needs a `dtc`/libfdt module,
+since aarch64 uses device trees — unlike x86 it can't be `--disable-fdt`'d), and
+ship the AAVMF firmware (Debian `qemu-efi-aarch64`) as `/app/share/AAVMF/AAVMF_CODE.fd`
++ `AAVMF_VARS.fd`. This path is untested here.
+
+## Updating QEMU
+
+`update-version.sh` bumps only Claude itself. QEMU, libslirp, OVMF, and the two
+pip wheels are pinned by hand in the manifest — bump their `url`/`sha256` there
+when you want newer versions.
+
 ## Permissions
 
 See `finish-args` in the manifest. Notably `--filesystem=home` is broad; narrow
 it to specific project directories (e.g. `--filesystem=~/code`) if you want
-tighter isolation.
+tighter isolation. `--device=all` is required for Cowork (see above).
 
 ## How it works
 
@@ -87,6 +133,11 @@ tighter isolation.
    `zypak-wrapper`.
 5. Upstream's `.desktop` (kept for the `claude://` handler + actions) and icons
    are renamed to the app-id and exported.
+6. For Cowork (x86_64): `libslirp` and `qemu` are built from source, OVMF
+   firmware is extracted from Debian's `ovmf-generic` deb into `/app/share/OVMF`,
+   and `app.asar` is byte-patched so the app's hardcoded `/usr/share/OVMF`
+   firmware lookup resolves to `/app/share/OVMF` (equal-length paths → the
+   archive's offsets stay valid, no repack).
 
 ## Disclaimer
 
