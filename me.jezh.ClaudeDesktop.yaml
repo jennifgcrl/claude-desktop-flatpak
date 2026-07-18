@@ -169,7 +169,7 @@ modules:
 
       # Desktop entry: reuse upstream's (keeps the claude:// handler + actions),
       # renamed to the app-id and repointed at our exported icon name.
-      - install -Dm644 data/usr/share/applications/claude-desktop.desktop
+      - install -Dm644 data/usr/share/applications/com.anthropic.Claude.desktop
           /app/share/applications/${FLATPAK_ID}.desktop
       - sed -i "s/^Icon=.*/Icon=${FLATPAK_ID}/" /app/share/applications/${FLATPAK_ID}.desktop
 
@@ -187,13 +187,13 @@ modules:
     sources:
       - type: file
         only-arches: [x86_64]
-        url: https://downloads.claude.ai/claude-desktop/apt/stable/pool/main/c/claude-desktop/claude-desktop_1.17377.1_amd64.deb
-        sha256: f4bd78545200877b591179838de7ad7a577df6ed2e845969dd25690efc5c85c7
+        url: https://downloads.claude.ai/claude-desktop/apt/stable/pool/main/c/claude-desktop/claude-desktop_1.22209.0_amd64.deb
+        sha256: 6d18ae792c2bddad01edc97c2c3f4cf489004cefe8fed6760a696ed25c49bf61
         dest-filename: claude-desktop.deb
       - type: file
         only-arches: [aarch64]
-        url: https://downloads.claude.ai/claude-desktop/apt/stable/pool/main/c/claude-desktop/claude-desktop_1.17377.1_arm64.deb
-        sha256: 658acbff14bd9c35d795ede46f097fca79d433ac4af792cdd6486acd3adc6f2e
+        url: https://downloads.claude.ai/claude-desktop/apt/stable/pool/main/c/claude-desktop/claude-desktop_1.22209.0_arm64.deb
+        sha256: 7323fe6c3ab6b7078e81a9bf0200806e3486e73bc5873420ee9d26f10b66e1e9
         dest-filename: claude-desktop.deb
       - type: file
         path: claude-desktop.sh
