@@ -58,6 +58,25 @@ git diff              # review
 The pinned version and per-arch `sha256` sums live in
 `me.jezh.ClaudeDesktop.yaml`.
 
+### Automated updates
+
+`.github/workflows/update.yml` runs `update-version.sh` daily and opens a PR
+when a newer release exists. It opens the PR with a **GitHub App** installation
+token rather than the default `GITHUB_TOKEN`, so the PR is not caught by
+GitHub's anti-recursion rule and the **Build** workflow verifies it
+automatically.
+
+One-time setup:
+
+1. Create a GitHub App (Settings → Developer settings → GitHub Apps → New).
+   Give it repository permissions **Contents: Read and write** and
+   **Pull requests: Read and write**. No webhook needed.
+2. Generate a private key for the App and note its App ID.
+3. Install the App on this repository.
+4. Add two repository secrets (Settings → Secrets and variables → Actions):
+   - `APP_ID` — the App's numeric id
+   - `APP_PRIVATE_KEY` — the full contents of the downloaded `.pem`
+
 ## What works / what doesn't
 
 - **Chat, Claude Code** (integrated terminal, editor, diff review): work.

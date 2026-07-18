@@ -1,22 +1,32 @@
 name: Update Claude version
 
 # Once a day, check Anthropic's apt repo for a newer claude-desktop release and,
-# if there is one, open a PR bumping the pinned version + sha256 sums. The Build
-# workflow then verifies it (see the note in build.yml about auto-PRs and PAT).
+# if there is one, open a PR bumping the pinned version + sha256 sums.
+#
+# The PR is opened with a GitHub App installation token (not the default
+# GITHUB_TOKEN), so it is NOT subject to GitHub's anti-recursion rule and the
+# Build workflow runs on it automatically. Requires two repo secrets:
+#   APP_ID           - the GitHub App's id
+#   APP_PRIVATE_KEY  - the App's private key (PEM)
+# The App must be installed on this repo with Contents: write and
+# Pull requests: write permissions. See README for the one-time setup.
 on:
   schedule:
     - cron: '0 6 * * *'   # daily, 06:00 UTC
   workflow_dispatch:
-
-permissions:
-  contents: write
-  pull-requests: write
 
 jobs:
   bump:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Generate a GitHub App token
+        uses: actions/create-github-app-token@v2
+        id: app-token
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
 
       # Rewrites version + per-arch sha256 in the manifest and the metainfo
       # <release>. A no-op if already on the latest version.
@@ -26,7 +36,7 @@ jobs:
       - name: Open PR if anything changed
         uses: peter-evans/create-pull-request@v7
         with:
-          token: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
           branch: update/claude-version
           delete-branch: true
           commit-message: Bump Claude Desktop to the latest upstream release
@@ -34,7 +44,4 @@ jobs:
           body: |
             Automated daily bump by `update-version.sh`.
 
-            Confirm the **Build** workflow is green before merging. If Build did
-            not run on this PR, dispatch it manually (Actions → Build → Run
-            workflow → this branch), or set a `PAT` secret so future auto-PRs
-            trigger it — see `.github/workflows/build.yml`.
+            Confirm the **Build** workflow is green before merging.

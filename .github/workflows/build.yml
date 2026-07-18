@@ -1,11 +1,8 @@
 name: Build
 
 # Verifies the Flatpak builds. Runs on pushes/PRs to main and on demand.
-# Note: PRs opened by the daily update workflow use the default GITHUB_TOKEN,
-# which by design does NOT trigger this workflow. The post-merge push to main
-# does build them; to also build the auto-PRs before merge, add a repo secret
-# named PAT (a fine-grained token with contents+PR write) and the update
-# workflow will use it.
+# The daily update workflow opens its PRs with a GitHub App token, so this
+# workflow runs on those PRs automatically (see .github/workflows/update.yml).
 on:
   push:
     branches: [main]
