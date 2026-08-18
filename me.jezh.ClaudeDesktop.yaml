@@ -119,8 +119,14 @@ modules:
       - install -Dm644 data/usr/share/OVMF/OVMF_VARS_4M.fd /app/share/OVMF/OVMF_VARS_4M.fd
     sources:
       - type: file
-        url: http://ftp.debian.org/debian/pool/main/e/edk2/ovmf-generic_2025.11-5_all.deb
-        sha256: f7eb07ca56df6b5fbae7b98a294515ddb37e15fae25b7ff91b9deb1681d91416
+        url: http://ftp.debian.org/debian/pool/main/e/edk2/ovmf-generic_2026.05-2_all.deb
+        sha256: 0f2d4de080ebeaf0972c5e212253c28dd2d90aa641542f42f37c6d6ecd4c67eb
+        # The Debian pool only carries the current version, so the url above
+        # 404s as soon as edk2 is bumped. snapshot.debian.org keeps every
+        # upload forever; it is slower but stable, so it serves as a fallback
+        # until someone bumps the pinned version here.
+        mirror-urls:
+          - https://snapshot.debian.org/archive/debian/20260806T202652Z/pool/main/e/edk2/ovmf-generic_2026.05-2_all.deb
         dest-filename: ovmf-generic.deb
 
   # --- Claude Desktop itself -----------------------------------------------
