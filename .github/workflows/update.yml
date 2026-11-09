@@ -1,7 +1,8 @@
 name: Update Claude version
 
 # Once a day, check Anthropic's apt repo for a newer claude-desktop release and,
-# if there is one, open a PR bumping the pinned version + sha256 sums.
+# if there is one, open a PR bumping the pinned version + sha256 sums (and the
+# OVMF firmware). The PR auto-merges once the required Build check passes.
 #
 # The PR is opened with a GitHub App installation token (not the default
 # GITHUB_TOKEN), so it is NOT subject to GitHub's anti-recursion rule and the
@@ -34,6 +35,7 @@ jobs:
         run: ./update-version.sh
 
       - name: Open PR if anything changed
+        id: cpr
         uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ steps.app-token.outputs.token }}
@@ -44,4 +46,10 @@ jobs:
           body: |
             Automated daily bump by `update-version.sh`.
 
-            Confirm the **Build** workflow is green before merging.
+            Auto-merges once the **Build** check passes.
+
+      - name: Auto-merge once Build passes
+        if: steps.cpr.outputs.pull-request-number
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: gh pr merge --auto --merge "${{ steps.cpr.outputs.pull-request-number }}" --repo "$GITHUB_REPOSITORY"
