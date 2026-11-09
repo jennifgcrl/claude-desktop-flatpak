@@ -119,10 +119,10 @@ modules:
       - install -Dm644 data/usr/share/OVMF/OVMF_VARS_4M.fd /app/share/OVMF/OVMF_VARS_4M.fd
     sources:
       - type: file
-        url: http://ftp.debian.org/debian/pool/main/e/edk2/ovmf-generic_2026.05-2_all.deb
-        sha256: 0f2d4de080ebeaf0972c5e212253c28dd2d90aa641542f42f37c6d6ecd4c67eb
+        url: http://ftp.debian.org/debian/pool/main/e/edk2/ovmf-generic_2026.08+ds-3_all.deb
+        sha256: 0ee404cbf543ce0077c159a946fa8012b779b94a8c158678dc94f290fbd67eea
         mirror-urls:
-          - https://snapshot.debian.org/archive/debian/20260806T202652Z/pool/main/e/edk2/ovmf-generic_2026.05-2_all.deb
+          - https://snapshot.debian.org/file/c729f628baddcb9112b0c33ff9b7912a192e8ea3
         dest-filename: ovmf-generic.deb
 
   # --- Claude Desktop itself -----------------------------------------------

@@ -50,7 +50,7 @@ or add `pkgs.flatpak-builder` to your environment.
 Anthropic pushes new builds to their apt repo. To bump:
 
 ```sh
-./update-version.sh   # rewrites version + sha256 for both arches
+./update-version.sh   # rewrites version + sha256 for both arches, bumps OVMF
 git diff              # review
 ./build.sh
 ```
@@ -61,8 +61,10 @@ The pinned version and per-arch `sha256` sums live in
 ### Automated updates
 
 `.github/workflows/update.yml` runs `update-version.sh` daily and opens a PR
-when a newer release exists. It opens the PR with a **GitHub App** installation
-token rather than the default `GITHUB_TOKEN`, so the PR is not caught by
+when a newer Claude release or OVMF firmware exists. The PR auto-merges once
+the **Build** check passes; a failing build leaves it open for a look. It opens
+the PR with a **GitHub App** installation token rather than the default
+`GITHUB_TOKEN`, so the PR is not caught by
 GitHub's anti-recursion rule and the **Build** workflow verifies it
 automatically.
 
@@ -76,6 +78,9 @@ One-time setup:
 4. Add two repository secrets (Settings → Secrets and variables → Actions):
    - `APP_ID` — the App's numeric id
    - `APP_PRIVATE_KEY` — the full contents of the downloaded `.pem`
+5. Enable auto-merge (Settings → General → Allow auto-merge) and add a ruleset
+   on `main` requiring the **Build x86_64** status check, so auto-merge waits
+   for the build instead of merging immediately.
 
 ## What works / what doesn't
 
@@ -136,7 +141,8 @@ ship the AAVMF firmware (Debian `qemu-efi-aarch64`) as `/app/share/AAVMF/AAVMF_C
 
 ## Updating QEMU
 
-`update-version.sh` bumps only Claude itself. QEMU, libslirp, OVMF, and the two
+`update-version.sh` bumps Claude and the OVMF firmware (to the version in Debian
+testing, since Debian's pool drops old versions). QEMU, libslirp, and the two
 pip wheels are pinned by hand in the manifest — bump their `url`/`sha256` there
 when you want newer versions.
 
