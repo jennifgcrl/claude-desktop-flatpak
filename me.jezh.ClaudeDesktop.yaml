@@ -20,6 +20,7 @@ sdk: org.freedesktop.Sdk
 base: org.electronjs.Electron2.BaseApp
 base-version: '24.08'
 command: claude-desktop
+separate-locales: false
 
 finish-args:
   # Chromium/Electron IPC and network.

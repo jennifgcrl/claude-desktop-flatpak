@@ -21,7 +21,7 @@ if command -v flatpak-builder >/dev/null 2>&1; then
   fb() { flatpak-builder "$@"; }
 elif command -v nix >/dev/null 2>&1; then
   echo "flatpak-builder not found; using nix (flatpak-builder + appstream)"
-  fb() { nix shell nixpkgs#flatpak-builder nixpkgs#appstream --command flatpak-builder "$@"; }
+  fb() { nix shell nixpkgs#flatpak-builder nixpkgs#appstream --command flatpak-builder --disable-rofiles-fuse "$@"; }
 else
   echo "error: need flatpak-builder (install it, or install Nix)." >&2
   exit 1
